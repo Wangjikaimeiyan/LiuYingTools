@@ -1,0 +1,20 @@
+外网访问
+支持
+oss-cn-beijing.aliyuncs.com                                               （地域节点）
+java-date.oss-cn-beijing.aliyuncs.com                                  Bucket 域名
+
+
+ECS 的经典网络访问（内网）
+支持
+oss-cn-beijing-internal.aliyuncs.com                                  （地域节点）
+java-date.oss-cn-beijing-internal.aliyuncs.com                     Bucket 域名
+
+ECS 的 VPC 网络访问（内网）
+支持
+oss-cn-beijing-internal.aliyuncs.com                                 （地域节点）
+java-date.oss-cn-beijing-internal.aliyuncs.com                     Bucket 域名
+
+
+我的bucket名字:java-date
+
+

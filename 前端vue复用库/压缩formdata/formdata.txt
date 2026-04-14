@@ -1,0 +1,33 @@
+// 1. 新建一个空压缩包
+const formData = new FormData()
+
+// 2. 往压缩包里放文件/数据
+formData.append('name', name.value)   // 放文本：菜品名
+formData.append('price', price.value) // 放文本：价格
+if (file) formData.append('image', file) // 放图片：只有选了图片才放进去
+
+// 3. 把整个压缩包发出去
+await axios.put(`/dishes/${dishId}`, formData)
+
+
+
+
+
+@PutMapping("/dishes/{id}")
+public String update(
+        @PathVariable Long id,          // 从路径解出 id
+        @RequestParam String name,     // 从压缩包解出 name
+        @RequestParam Double price,    // 从压缩包解出 price
+        @RequestParam(required = false) MultipartFile image  // 从压缩包解出 image
+) throws Exception {
+    // 解包完成，直接用这些参数
+    System.out.println("id: " + id);
+    System.out.println("name: " + name);
+    System.out.println("price: " + price);
+    if (image != null) {
+        System.out.println("图片名: " + image.getOriginalFilename());
+        // 把图片保存到本地（最简保存）
+        image.transferTo(new File(image.getOriginalFilename()));
+    }
+    return "success";
+}

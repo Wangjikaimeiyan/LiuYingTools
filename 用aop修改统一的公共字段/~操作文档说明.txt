@@ -1,0 +1,140 @@
+公共字段自动填充
+Service 调用 Mapper → 切面拦截 → 调用工具类 → 反射赋值 → 存入数据库
+
+📌 模块整体流程（谁先触发 → 谁后调用）
+
+1. 你在 Service 调用 Mapper 的 insert / update
+→ 比如：dishMapper.insert(dish);
+
+2. Mapper 方法上有个注解：@AutoFill
+→ 比如：@AutoFill(OperationType.INSERT)
+→ 这个注解告诉 AOP：我这个方法要自动填充字段。
+
+3. AOP 切面（AutoFillAspect）立刻拦截
+→ 它一直在盯着 Mapper，看到有 @AutoFill 就跑过来。
+
+4. 切面拿到两个东西：
+
+- 操作类型（INSERT 还是 UPDATE）
+- 实体对象（dish）
+
+5. 切面调用工具类：AutoFillUtils.fill(entity, type)
+→ 终于进入真正的赋值环节。
+
+6. 工具类用反射给实体赋值：
+
+- INSERT → 填 4 个（createTime / updateTime / createUser / updateUser）
+- UPDATE → 填 2 个（updateTime / updateUser）
+
+7. 最后 Mapper 把数据存进数据库
+
+
+🧩 每个文件干嘛的（超短说明）
+
+1. ~操作文档说明.txt
+
+本文档。
+放最后，说明整个模块怎么用。
+
+
+2. OperationType枚举.txt
+
+指定当前是新增还是修改。
+INSERT / UPDATE 告诉工具类填哪些字段。
+
+
+3. AutoFill 自定义注解.txt
+
+标记 Mapper 方法需要自动填充。
+它写在哪里，AOP 就盯哪里。
+
+
+4. AutoFillConstant 常量类.txt
+
+存实体类的 set 方法名字。
+比如 setCreateTime、setUpdateTime
+避免到处硬写字符串，错一个都赋不上值。
+
+
+5. AutoFillUtils 核心工具类.txt
+
+真正负责赋值的类。
+靠反射调用实体的 set 方法，把时间和用户ID填进去。
+
+
+6. AutoFillAspect 切面类.txt
+
+AOP 入口。
+负责找到标注了 @AutoFill 的方法，然后调用工具类。
+
+
+********************************************************************************************************
+
+
+BaseContext 不是官方类，你必须自己写：
+public class BaseContext {
+    private static ThreadLocal<Long> threadLocal = new ThreadLocal<>();
+
+    public static void setCurrentId(Long id) {
+        threadLocal.set(id);
+    }
+
+    public static Long getCurrentId() {
+        return threadLocal.get();
+    }
+}
+
+---------------------------------------------------------------------------------------------------------
+
+
+从代码结构和设计意图来看，这个 AutoFillUtils 工具类完全可以当作独立的工具类使用，但在实际项目中需要考虑以下几点细节和潜在风险：
+
+✅ 工具类的正确设计
+
+1. 私有构造 + 静态方法：符合标准工具类模式，防止实例化。
+2. 纯反射操作：不依赖 Spring 容器或 AOP，可脱离切面单独调用。
+3. 参数清晰：只需要传入实体对象和操作类型即可完成填充。
+4. 异常处理：内部捕获了反射异常并记录日志，调用方无感知。
+
+⚠️ 使用时的潜在问题与注意事项
+
+1. 依赖 BaseContext.getCurrentId()
+   · 该方法必须能从当前线程上下文中获取到用户 ID（通常通过 ThreadLocal 实现）。
+   · 若在非 Web 请求线程（如定时任务、MQ 消费者、单元测试）中调用，BaseContext.getCurrentId() 可能返回 null，导致填充 createUser/updateUser 为 null。
+   · 建议：在工具类中对 currentUserId 做空值判断，或提供重载方法允许外部显式传入用户 ID。
+2. 实体类必须存在固定的 setter 方法
+   · 常量中硬编码了方法名 setCreateTime、setUpdateUser 等，若实体类字段名不一致或未提供对应 setter，会抛出 NoSuchMethodException，被捕获后仅打印日志，字段填充静默失败。
+   · 适用场景：仅适用于遵循统一字段命名规范的实体类（如项目内所有 PO 都包含这四个公共字段）。
+3. 类型严格匹配
+   · LocalDateTime.class 和 Long.class 写死，若实体类字段类型不同（如 Date、Integer），反射调用会失败。
+   · 扩展性：可作为项目内部专用工具，不适用于完全通用的公共字段填充。
+4. 异常处理策略
+   · 当前只记录日志，不抛出异常。这在切面场景下是合理的（避免因字段填充失败阻断业务），但在手动调用工具类时，调用方无法感知填充是否成功。
+   · 可选优化：增加一个布尔返回值或抛出自定义运行时异常，让调用方自行决定处理方式。
+
+🔧 改进建议（可选）
+
+若希望工具类更健壮、更通用：
+
+```java
+// 1. 增加用户 ID 空值处理
+Long currentUserId = BaseContext.getCurrentId();
+if (currentUserId == null) {
+    log.debug("当前线程未获取到用户ID，跳过用户字段填充");
+}
+
+// 2. 增加方法存在性检查，避免频繁异常
+Method setMethod = entity.getClass().getMethod(methodName, paramType);
+// 使用 getMethod 代替 getDeclaredMethod 可以兼容父类 public 方法
+
+// 3. 提供重载方法，允许外部传入 userId 和时间
+public static void fill(Object entity, OperationType type, Long userId, LocalDateTime time) {
+    // ...
+}
+```
+
+📌 结论
+
+· 可以作为工具类，且设计思路清晰，职责单一。
+· 使用时需确保：调用线程能通过 BaseContext 获取到用户 ID，且目标实体包含标准命名的公共字段 setter。
+· 若脱离 AOP 切面单独使用，需自行保证上述前置条件，否则可能出现字段未填充的情况。

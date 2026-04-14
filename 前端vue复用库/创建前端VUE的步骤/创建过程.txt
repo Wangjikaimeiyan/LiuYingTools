@@ -1,0 +1,5 @@
+npm create vue@3.3.4
+
+cd vue-project2
+
+npm install

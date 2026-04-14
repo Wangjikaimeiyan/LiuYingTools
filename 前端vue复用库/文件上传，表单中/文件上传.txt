@@ -1,0 +1,53 @@
+const triggerUpload = () => {
+  // 获取 el-upload 组件内部的原生 input 元素并触发点击
+  uploadRef.value.$el.querySelector('input').click()
+}
+<el-col :span="24">
+          <el-form-item label="图片">
+            <!-- 隐藏的 el-upload，只用于管理文件选择逻辑 -->
+            <el-upload ref="uploadRef" :auto-upload="false" :limit="1" :on-change="handleImageChange"
+              :on-exceed="handleExceed" accept="image/jpeg,image/png,image/jpg" :show-file-list="false" />
+
+            <!-- 自定义预览区域，点击触发上传 -->
+            <div class="image-preview" @click="triggerUpload">
+              <img v-if="imageUrl" :src="imageUrl" alt="预览" />
+              <el-icon v-else>
+                <Plus />
+              </el-icon>
+              <div v-if="!imageUrl" class="upload-tip">点击上传图片</div>
+            </div>
+          </el-form-item>
+        </el-col>
+
+
+        const isImageChanged = ref(false)   // 标记图片是否改变
+        const handleImageChange = (file) => {/*触发事件：图片选择成功时触发*/
+          console.log(file, "触发")
+          // 限制文件大小不超过 10MB
+          const isLt10M = file.raw.size / 1024 / 1024 < 10
+          if (!isLt10M) {
+            ElMessage.error('图片大小不能超过 10MB!')
+            return
+          }
+
+          // 保存原始文件，用于后续表单提交
+          imageFile.value = file.raw
+
+          // 清理之前的预览 URL，避免内存泄漏
+          if (imageUrl.value) {
+            URL.revokeObjectURL(imageUrl.value)
+          }
+
+          // 生成新的预览 URL，并赋值给 imageUrl
+          imageUrl.value = URL.createObjectURL(file.raw)
+          // 给flag 为true，表示图片要改变
+          isImageChanged.value = true
+          console.log('生成的 imageUrl:', imageUrl.value)
+        }
+
+        /**
+         * 超出上传数量限制时的处理（limit=1）
+         */
+        const handleExceed = () => {
+          ElMessage.warning('只能上传一张图片！')
+        }

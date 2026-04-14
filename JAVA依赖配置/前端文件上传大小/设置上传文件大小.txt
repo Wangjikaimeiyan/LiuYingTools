@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: tlias-web-management
+  #mysql连接配置
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/tlias
+    username: root
+    password: 78789191
+  servlet:
+    multipart:
+#      最大单个文件大小
+      max-file-size: 10MB
+#      最大请求文件大小
+      max-request-size: 100MB
+=======================================================
+  servlet:
+    multipart:
+#      最大单个文件大小
+      max-file-size: 10MB
+#      最大请求文件大小
+      max-request-size: 100MB
+#是有用的
+
+

@@ -1,0 +1,9 @@
+public ClazzsPageResult page(ClazzQuaryParam clazzQuaryParam) {
+        log.info("条件分页查询");
+//        分页插件
+        PageHelper.startPage(clazzQuaryParam.getPage(), clazzQuaryParam.getPageSize());
+        List<Clazz> rows = clazzMapper.page(clazzQuaryParam);
+//        强制转换
+        Page<Clazz> p = (Page<Clazz>) rows;
+        return new ClazzsPageResult<>(p.getTotal(),p.getResult());
+    }

@@ -1,0 +1,14 @@
+#阿里云OSSw
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com
+    bucketName: java-date
+    region: cn-beijing
+
+
+注释:
+aliyun:
+  oss:
+    endpoint: https://oss-cn-beijing.aliyuncs.com  # 北京地域 OSS 服务端点（对应文档 URL）
+    bucketName: java-date  # 存储桶名称（需确保已在阿里云控制台创建）
+    region: cn-beijing  # 地域标识（与 endpoint 一致，避免连接异常）
