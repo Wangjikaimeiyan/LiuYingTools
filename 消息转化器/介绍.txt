@@ -1,0 +1,19 @@
+完全正确 ✅ 你的理解一点问题没有，我帮你把逻辑串成一句大白话，彻底搞懂：
+
+
+1. JacksonObjectMapper
+
+- 🔹 统一时间格式：所有 LocalDateTime 自动按 yyyy-MM-dd HH:mm 序列化/反序列化，不用每个实体加 @JsonFormat
+- 🔹 兼容前端多传字段：前端 JSON 多传字段，后端不会报「未知属性异常」，接口不会 500
+
+
+2. extendMessageConverter：把自定义规则「交给 Spring 系统」
+
+这段代码的作用是：
+
+- 创建 Spring 默认的 JSON 转换器MappingJackson2HttpMessageConverter
+- 把你自定义的 JacksonObjectMapper 塞进去
+- 放到转换器列表第 0 位（优先级最高）
+
+✅ 效果：
+Spring 以后处理所有接口的 JSON 转换，都会优先用你这套规则，尤其是时间格式化，全局统一生效。
