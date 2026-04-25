@@ -1,6 +1,12 @@
 公共字段自动填充
 Service 调用 Mapper → 切面拦截 → 调用工具类 → 反射赋值 → 存入数据库
 
+
+//    做约定：第一个参数是数据库表对应的实体类对象IMPORTANT
+
+
+
+
 📌 模块整体流程（谁先触发 → 谁后调用）
 
 1. 你在 Service 调用 Mapper 的 insert / update
