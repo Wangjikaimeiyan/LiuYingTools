@@ -16,7 +16,7 @@ public class RedisConfiguration {
     @Bean
     public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory factory) {
         RedisTemplate<String, Object> template = new RedisTemplate<>();
-        template.setConnectionFactory(factory);
+        template.setConnectionFactory(factory);/* 配置连接工厂 */
 
         // Key、HashKey 统一 UTF-8 字符串序列化
         StringRedisSerializer stringSerializer = new StringRedisSerializer(StandardCharsets.UTF_8);
