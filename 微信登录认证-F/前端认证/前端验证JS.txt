@@ -1,0 +1,54 @@
+  data: {
+    code: '',
+    // 令牌
+    token: ""
+  },
+
+// 获取授权码 + 发给后端拿令牌
+  wxLogin() {
+    // 1. 先调微信登录拿code（异步）
+    wx.login({
+      success: (res) => {
+        // 拿到微信临时code
+        let code = res.code;
+        console.log("拿到code：", code);
+
+        // 2. 必须在 success 回调里面再发请求！
+        wx.request({
+          url: BASE_URL + "/WxUser/Login",
+          method: "POST",
+          header: {
+            "Content-Type": "application/json"
+          },
+          // 直接传 code 对象
+          data: {
+            code: code
+          },
+          success: (res) => {
+            // 校验
+            if (res.data.code !== 1) {
+              wx.showToast({
+                title: "登录失败",
+                icon: "none"
+              })
+              return;
+            }
+            console.log("后端返回令牌：", res.data.data)
+            // 存到页面 + 本地缓存
+            this.setData({
+              token: res.data.data
+            })
+            wx.setStorageSync("token", res.data.data)
+            let localToken = wx.getStorageSync("token");
+            console.log("本地缓存里的token：", localToken);
+          },
+          fail() {
+            wx.showToast({
+              title: "登录请求失败",
+              icon: "none"
+            })
+          }
+        })
+      }
+    })
+  },
