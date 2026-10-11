@@ -1,0 +1,12 @@
+ docker volume ls   // 查看
+DRIVER    VOLUME NAME
+local     4c865b8aa8a3a3b1ab208085714024bc9bcde8100ef0c126b9b156573a44f3bf
+local     5bf0b59eafbfc07eba76cec1b8f1adfafe97b7e4f0ee29f0d6a007891271cd46
+local     7fa3cb38ae61691b3394bb91fa8cee43cc3b87963c71ea0d7713bd41ecb3a9dd
+local     ec6d4f7f027bc0617d89a3b31c4b44907815a813b72428b1de5e2ccb2aa357e1
+local     html
+local     mq-plugins
+[root@localhost ~]# docker volume inspect mq-plugins // 查看
+[root@localhost ~]# cd /var/lib/docker/volumes/mq-plugins/_data  // 进入
+
+docker exec -it mq rabbitmq-plugins enable rabbitmq_delayed_message_exchange  // 挂载
